@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-xl mb-4">Tic Tac Toe</h2>
+
+<div class="grid grid-cols-3 gap-2 w-48">
+  {% for i in range(9) %}
+  <form method="post">
+    <input type="hidden" name="cell" value="{{ i }}">
+    <button class="w-16 h-16 bg-gray-700 text-2xl">
+      {{ board[i] or "" }}
+    </button>
+  </form>
+  {% endfor %}
+</div>
+
+{% if winner %}
+<p class="mt-4 text-green-400">Winner: {{ winner }}</p>
+{% else %}
+<p class="mt-4">Turn: {{ turn }}</p>
+{% endif %}
+{% endblock %}

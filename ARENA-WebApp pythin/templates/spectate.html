@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <!-- Banner Ads -->
+  <div id="ads-container" class="mb-8 space-y-3">
+    <p class="text-gray-400">Loading advertisements...</p>
+  </div>
+
+  <h1 class="text-4xl font-bold mb-2">Spectator Mode</h1>
+  <p class="text-gray-400 mb-8">Watch live games without logging in!</p>
+  
+  <div class="grid md:grid-cols-3 gap-6 mb-12">
+    <!-- Tic Tac Toe Spectate -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-2xl font-bold mb-4">🎯 Tic Tac Toe</h2>
+      <p class="text-gray-400 mb-4">Watch players compete in classic Tic Tac Toe</p>
+      <a href="/spectate/tic_tac_toe" class="block bg-blue-600 p-3 rounded text-center hover:bg-blue-700 transition font-semibold">👁️ Watch Game</a>
+    </div>
+
+    <!-- Connect Four Spectate -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-2xl font-bold mb-4">🔴 Connect Four</h2>
+      <p class="text-gray-400 mb-4">Watch exciting Connect Four matches</p>
+      <a href="/spectate/connect_four" class="block bg-red-600 p-3 rounded text-center hover:bg-red-700 transition font-semibold">👁️ Watch Game</a>
+    </div>
+
+    <!-- Maze Spectate -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-2xl font-bold mb-4">🎲 Maze Challenge</h2>
+      <p class="text-gray-400 mb-4">Watch players navigate randomly generated mazes</p>
+      <a href="/spectate/maze" class="block bg-yellow-600 p-3 rounded text-center hover:bg-yellow-700 transition font-semibold">👁️ Watch Game</a>
+    </div>
+  </div>
+
+  <!-- Game Stats -->
+  <div class="bg-gray-800 p-6 rounded-lg mb-8">
+    <h2 class="text-2xl font-bold mb-4">Live Statistics</h2>
+    <div class="grid md:grid-cols-4 gap-4">
+      <div class="text-center">
+        <p class="text-gray-400">Active Players</p>
+        <p class="text-3xl font-bold">24</p>
+      </div>
+      <div class="text-center">
+        <p class="text-gray-400">Games Today</p>
+        <p class="text-3xl font-bold">156</p>
+      </div>
+      <div class="text-center">
+        <p class="text-gray-400">Current Viewers</p>
+        <p class="text-3xl font-bold">89</p>
+      </div>
+      <div class="text-center">
+        <p class="text-gray-400">Active Ads</p>
+        <p class="text-3xl font-bold" id="ads-count">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="bg-gray-800 p-6 rounded-lg">
+    <h2 class="text-2xl font-bold mb-4">How Spectator Mode Works</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div>
+        <h3 class="font-bold text-lg mb-2">✓ No Login Required</h3>
+        <p class="text-gray-400">Watch games without creating an account</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-2">✓ Real-Time Updates</h3>
+        <p class="text-gray-400">See every move as it happens</p>
+      </div>
+      <div>
+        <h3 class="font-bold text-lg mb-2">✓ Live Statistics</h3>
+        <p class="text-gray-400">Track game progress and player moves</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadAds() {
+    try {
+      const response = await fetch('/ads-display');
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const adItems = doc.querySelectorAll('.ad-item');
+      
+      const container = document.getElementById('ads-container');
+      if (adItems.length > 0) {
+        container.innerHTML = Array.from(adItems).map(ad => ad.outerHTML).join('');
+        document.getElementById('ads-count').textContent = adItems.length;
+      } else {
+        container.innerHTML = '<p class="text-gray-400">No active advertisements at the moment</p>';
+      }
+    } catch (error) {
+      console.log('Ads not available');
+    }
+  }
+
+  loadAds();
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import re
+
+# Template updates for better centering and animations
+
+tic_tac_toe_update = '''{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-col items-center w-full">
+  <h2 class="text-5xl font-bold mb-2 scale-in">🎮 Tic Tac Toe</h2>
+  <p class="text-gray-400 mb-12 fade-in" style="animation-delay: 0.1s;">
+    {% if vs_computer %}🤖 Playing vs Computer{% else %}👥 2-Player Game{% endif %}
+  </p>
+
+  <div class="grid md:grid-cols-2 gap-12 w-full max-w-4xl">
+    <!-- Game Board -->
+    <div class="flex flex-col items-center">
+      <div class="grid grid-cols-3 gap-3 bg-gray-800 p-6 rounded-xl mb-8 scale-in border-4 border-blue-500">
+        {% for i in range(9) %}
+          <form method="post" class="m-0">
+            <input type="hidden" name="action" value="move">
+            <input type="hidden" name="cell" value="{{ i }}">
+            <button type="submit" class="w-20 h-20 bg-gray-700 border-2 border-purple-600 text-4xl font-bold hover:bg-gray-600 transition rounded-lg card-hover {{ 'opacity-50 cursor-not-allowed' if board[i] else '' }}" {{ 'disabled' if board[i] else '' }}>
+              {% if board[i] == "X" %}
+                <span class="text-blue-400">X</span>
+              {% elif board[i] == "O" %}
+                <span class="text-red-400">O</span>
+              {% endif %}
+            </button>
+          </form>
+        {% endfor %}
+      </div>
+
+      <!-- Game Status -->
+      <div class="bg-gray-800 p-6 rounded-xl mb-6 w-full scale-in border-2 border-yellow-500" style="animation-delay: 0.2s;">
+        {% if winner %}
+          <p class="text-3xl font-bold text-green-400 mb-4 fade-in">🎉 Player {{ winner }} Wins!</p>
+          <form method="post" class="space-y-2">
+            <input type="hidden" name="action" value="replay">
+            <button type="submit" class="w-full bg-blue-600 p-4 rounded-lg hover:bg-blue-700 transition font-bold button-hover">🔄 Play Again</button>
+          </form>
+        {% else %}
+          <p class="text-xl font-semibold">Current Turn: <span class="text-yellow-400">{{ "X" if turn == "X" else "O" }}</span></p>
+          {% if vs_computer and turn == "O" %}
+            <p class="text-sm text-gray-400 mt-3 fade-in">💭 Computer is thinking...</p>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Game Mode Links -->
+      <div class="grid grid-cols-2 gap-4 w-full">
+        <a href="/tic-tac-toe" class="bg-gray-700 p-3 rounded-lg text-center hover:bg-gray-600 transition font-semibold button-hover">2-Player</a>
+        <a href="/tic-tac-toe?vs_computer=true" class="bg-gray-700 p-3 rounded-lg text-center hover:bg-gray-600 transition font-semibold button-hover">vs AI</a>
+      </div>
+    </div>
+
+    <!-- Game Info & Ads -->
+    <div class="space-y-6">
+      <div class="bg-gray-800 p-8 rounded-xl scale-in border-2 border-purple-500" style="animation-delay: 0.1s;">
+        <h3 class="text-2xl font-bold mb-4 text-purple-300">📋 Game Rules</h3>
+        <ul class="space-y-3 text-gray-300">
+          <li>✓ Click any empty cell to make your move</li>
+          <li>✓ X and O alternate turns</li>
+          <li>✓ Get 3 in a row to win</li>
+          <li>✓ Rows, columns, or diagonals</li>
+          <li>✓ If the board fills up, it\'s a draw</li>
+        </ul>
+      </div>
+
+      <div class="bg-gray-800 p-8 rounded-xl scale-in border-2 border-green-500" style="animation-delay: 0.2s;">
+        <h3 class="text-2xl font-bold mb-4 text-green-300">⚡ Game Status</h3>
+        <div class="space-y-3 bg-gray-700 p-4 rounded-lg">
+          <p class="text-gray-400">Mode: <span class="font-bold text-blue-300">{% if vs_computer %}vs AI{% else %}2-Player{% endif %}</span></p>
+          <p class="text-gray-400">Status: {% if winner %}<span class="text-green-400 font-bold">Complete</span>{% else %}<span class="text-yellow-400 font-bold">In Progress</span>{% endif %}</p>
+          <p class="text-gray-400">Next: <span class="font-bold text-red-300">{{ "O" if turn == "X" else "X" }}</span></p>
+        </div>
+      </div>
+
+      <!-- Advertisements -->
+      {% if ads %}
+      <div class="space-y-3 fade-in" style="animation-delay: 0.3s;">
+        <h3 class="text-lg font-bold text-yellow-400">📢 Featured Ads</h3>
+        {% for ad in ads %}
+        <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 p-5 rounded-lg border-2 border-yellow-400 shadow-lg card-hover">
+          <h4 class="text-lg font-bold text-white">{{ ad.product }}</h4>
+          <p class="text-yellow-50 text-sm">💰 Featured Product</p>
+          <p class="text-xs text-yellow-100 mt-2">Expires: {{ ad.expires_at.strftime(\'%Y-%m-%d\') }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="mt-12 fade-in" style="animation-delay: 0.5s;">
+    <a href="/dashboard" class="bg-gray-700 px-8 py-3 rounded-lg hover:bg-gray-600 transition font-semibold button-hover inline-block">← Back to Dashboard</a>
+  </div>
+
+  <!-- Spectator Link -->
+  <div class="mt-8 bg-gray-800 p-6 rounded-xl text-center scale-in" style="animation-delay: 0.6s;">
+    <p class="text-gray-400 mb-3">Want to watch instead?</p>
+    <a href="/spectate/tic_tac_toe" class="text-blue-400 hover:text-blue-300 font-semibold text-lg">👁️ Enter Spectator Mode</a>
+  </div>
+</div>
+
+<script>
+  // Auto-submit form if AI turn
+  {% if vs_computer and turn == "O" and not winner %}
+    setTimeout(() => {
+      // Find first available move and submit as AI
+      document.querySelector(\'form:last-of-type\')?.submit?.();
+    }, 1000);
+  {% endif %}
+</script>
+{% endblock %}
+'''
+
+# Update files
+try:
+    with open("templates/tic_tac_toe.html", "w", encoding="utf-8") as f:
+        f.write(tic_tac_toe_update)
+    print("✓ tic_tac_toe.html updated")
+except Exception as e:
+    print(f"✗ Error updating tic_tac_toe.html: {e}")
+
+print("Animation updates complete!")

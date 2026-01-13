@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .advertiser-bg {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+<div class="max-w-6xl mx-auto advertiser-bg min-h-screen p-6">
+  <h1 class="text-4xl font-bold mb-8">Advertiser Dashboard</h1>
+
+  <!-- Create New Ad Form -->
+  <div class="bg-gray-800 p-6 rounded-lg mb-8">
+    <h2 class="text-2xl font-bold mb-6">Create New Advertisement</h2>
+    <form method="post" class="space-y-4">
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold mb-2">Product Name</label>
+          <input name="product" placeholder="e.g., Gaming Laptop" class="w-full p-3 text-black rounded" required>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold mb-2">Amount to Pay ($)</label>
+          <input name="amount" type="number" min="1" step="0.01" placeholder="10.00" class="w-full p-3 text-black rounded" required>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-semibold mb-2">Duration (Days)</label>
+        <select name="days" class="w-full p-3 text-black rounded" required>
+          <option value="1">1 Day ($5)</option>
+          <option value="7">1 Week ($25)</option>
+          <option value="30">1 Month ($75)</option>
+          <option value="90">3 Months ($180)</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-green-700 p-3 rounded font-semibold hover:from-green-700 hover:to-green-800 transition" onclick="playSound('click')">Create Advertisement</button>
+    </form>
+  </div>
+
+  <!-- Active Advertisements -->
+  <div class="bg-gray-800 p-6 rounded-lg mb-8">
+    <h2 class="text-2xl font-bold mb-6">Your Advertisements</h2>
+    
+    {% if ads %}
+      <div class="space-y-4">
+        {% for ad in ads %}
+          <div class="bg-gradient-to-r from-purple-900 to-pink-900 p-4 rounded flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-bold">{{ ad.product }}</h3>
+              <p class="text-gray-300">Amount: ${{ "%.2f"|format(ad.amount_paid) }}</p>
+              <p class="text-sm text-gray-400">Created: {{ ad.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+              <p class="text-sm text-gray-400">Expires: {{ ad.expires_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+            <div class="text-right">
+              {% if ad.active %}
+                <span class="bg-green-600 px-4 py-2 rounded text-sm font-semibold block mb-2">✓ Active</span>
+                <p class="text-xs text-gray-300">Running</p>
+              {% else %}
+                <span class="bg-red-600 px-4 py-2 rounded text-sm font-semibold">✗ Expired</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-400 text-center py-8">No advertisements yet. Create your first one above!</p>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-gray-800 p-6 rounded-lg text-center">
+      <p class="text-gray-400 mb-2">Total Invested</p>
+      <p class="text-3xl font-bold">${{ "%.2f"|format(ads|map(attribute='amount_paid')|sum) }}</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-lg text-center">
+      <p class="text-gray-400 mb-2">Active Ads</p>
+      <p class="text-3xl font-bold">{{ ads|length }}</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-lg text-center">
+      <p class="text-gray-400 mb-2">Total Ads Created</p>
+      <p class="text-3xl font-bold">{{ ads|length }}</p>
+    </div>
+  </div>
+
+  <!-- Pricing Info -->
+  <div class="mt-8 bg-gray-800 p-6 rounded-lg">
+    <h2 class="text-2xl font-bold mb-4">Advertising Pricing</h2>
+    <div class="grid md:grid-cols-4 gap-4">
+      <div class="border-l-4 border-blue-500 pl-4">
+        <h3 class="font-bold mb-2">1 Day</h3>
+        <p class="text-2xl font-bold text-blue-400">$5</p>
+      </div>
+      <div class="border-l-4 border-green-500 pl-4">
+        <h3 class="font-bold mb-2">1 Week</h3>
+        <p class="text-2xl font-bold text-green-400">$25</p>
+      </div>
+      <div class="border-l-4 border-purple-500 pl-4">
+        <h3 class="font-bold mb-2">1 Month</h3>
+        <p class="text-2xl font-bold text-purple-400">$75</p>
+      </div>
+      <div class="border-l-4 border-red-500 pl-4">
+        <h3 class="font-bold mb-2">3 Months</h3>
+        <p class="text-2xl font-bold text-red-400">$180</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

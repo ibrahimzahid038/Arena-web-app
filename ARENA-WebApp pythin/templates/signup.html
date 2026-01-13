@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .signup-bg {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+  }
+</style>
+<div class="flex items-center justify-center min-h-screen signup-bg rounded-xl">
+  <div class="bg-gray-800 bg-opacity-95 backdrop-blur p-10 rounded-xl shadow-2xl w-full max-w-md scale-in border-2 border-green-500 hover:border-green-400 hover:shadow-green-500/50 transition-all">
+    <h2 class="text-3xl font-bold mb-8 text-center fade-in">🎮 Create Account</h2>
+    
+    <form method="post" class="space-y-5">
+      <div class="fade-in" style="animation-delay: 0.1s;">
+        <label class="block text-sm font-semibold mb-2 text-green-300">Username</label>
+        <input name="username" placeholder="Choose a username" class="w-full p-3 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition" required>
+      </div>
+      
+      <div class="fade-in" style="animation-delay: 0.2s;">
+        <label class="block text-sm font-semibold mb-2 text-green-300">Password</label>
+        <input name="password" type="password" placeholder="Enter password" class="w-full p-3 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition" required>
+      </div>
+      
+      <input type="hidden" name="role" value="player">
+      
+      {% if error %}
+        <div class="bg-red-600 p-3 rounded-lg text-sm scale-in">{{ error }}</div>
+      {% endif %}
+      
+      <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-green-700 p-3 rounded-lg font-bold hover:from-green-700 hover:to-green-800 button-hover fade-in" style="animation-delay: 0.3s;" onclick="playSound('click')">Sign Up</button>
+    </form>
+    
+    <p class="text-center text-gray-400 mt-6 slide-in-right" style="animation-delay: 0.4s;">Already have an account? <a href="/login" class="text-green-400 hover:text-green-300 font-semibold" onclick="playSound('click')">Login</a></p>
+  </div>
+</div>
+{% endblock %}

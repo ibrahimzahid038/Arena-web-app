@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .game-bg-maze {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-4xl mx-auto game-bg-maze min-h-screen">
+  <h2 class="text-4xl font-bold mb-8">Maze Challenge</h2>
+
+  <div class="grid md:grid-cols-3 gap-8">
+    <!-- Game Board -->
+    <div class="md:col-span-2">
+      <h3 class="text-xl font-bold mb-2">Navigate the Maze</h3>
+      
+      <!-- Move Counter -->
+      <p class="text-gray-400 mb-3">Moves: <span class="font-bold text-yellow-400">{{ moves }}</span></p>
+
+      <!-- Control Buttons -->
+      <div class="grid grid-cols-3 gap-2 mb-6 w-32">
+        <div></div>
+        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="up"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">↑</button></form>
+        <div></div>
+        
+        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="left"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">←</button></form>
+        <div class="bg-gray-600 p-3 rounded text-center">●</div>
+        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="right"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">→</button></form>
+        
+        <div></div>
+        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="down"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">↓</button></form>
+        <div></div>
+      </div>
+
+      <!-- Maze Grid -->
+      <div class="bg-gray-800 p-2 rounded-lg inline-block mb-6" style="display: inline-grid; grid-template-columns: repeat({{ maze[0]|length }}, 1fr); gap: 2px;">
+        {% for row in range(maze|length) %}
+          {% for col in range(maze[0]|length) %}
+            <div 
+              class="w-10 h-10 flex items-center justify-center font-bold text-sm rounded
+              {% if maze[row][col] == 1 %}
+                bg-gray-600 border-2 border-gray-700
+              {% elif [row, col] == player_pos %}
+                bg-green-500 text-white text-lg
+              {% elif [row, col] == goal_pos %}
+                bg-yellow-400 text-black text-lg
+              {% else %}
+                bg-gray-900 border-2 border-gray-700
+              {% endif %}"
+            >
+              {% if [row, col] == player_pos %}
+                👤
+              {% elif [row, col] == goal_pos %}
+                🚩
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <!-- Game Status -->
+      <div class="mt-6 bg-gray-800 p-6 rounded-lg">
+        {% if game_won %}
+          <p class="text-2xl font-bold text-green-400 mb-4">🎉 You escaped! Moves: {{ moves }}</p>
+          <form method="post" class="space-y-2">
+            <input type="hidden" name="action" value="replay">
+            <button type="submit" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-semibold">🔄 New Maze</button>
+          </form>
+        {% else %}
+          <p class="text-lg">Position: <span class="font-bold text-yellow-400">[{{ player_pos[0] }}, {{ player_pos[1] }}]</span></p>
+          <p class="text-gray-400 mt-2">Goal: Reach the 🚩 flag!</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Game Info -->
+    <div class="bg-gray-800 p-6 rounded-lg h-fit">
+      <h3 class="text-xl font-bold mb-4">How to Play</h3>
+      <ul class="space-y-2 text-gray-300 text-sm">
+        <li>✓ Use arrow buttons to move</li>
+        <li>✓ Navigate through the maze</li>
+        <li>✓ Reach the flag 🚩 to win</li>
+        <li>✓ Cannot move through walls</li>
+        <li>✓ Each maze is randomly generated</li>
+        <li>✓ Try to reach the goal in minimum moves</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Legend</h3>
+      <div class="space-y-2 text-sm">
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-green-500 rounded text-center">👤</span>Your Position</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-yellow-400 rounded text-center">🚩</span>Goal/Exit</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-gray-600 rounded border-2 border-gray-700"></span>Wall</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-gray-900 border-2 border-gray-700 rounded"></span>Path</p>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Stats</h3>
+      <div class="space-y-2 text-sm bg-gray-700 p-4 rounded">
+        <p class="text-gray-400">Moves: <span class="font-bold">{{ moves }}</span></p>
+        <p class="text-gray-400">Status: {% if game_won %}<span class="text-green-400 font-bold">Complete!</span>{% else %}<span class="text-yellow-400 font-bold">In Progress</span>{% endif %}</p>
+      </div>
+
+      <a href="/dashboard" class="mt-6 block bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm">Back to Dashboard</a>
+    </div>
+  </div>
+
+
+  <!-- Advertisements -->
+  {% if ads %}
+  <div class="mt-8">
+    <h3 class="text-2xl font-bold mb-4 text-center">Featured Advertisements</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for ad in ads %}
+      <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 p-6 rounded-lg border-2 border-yellow-400 shadow-lg hover:shadow-xl transition">
+        <div class="text-yellow-100 text-sm font-semibold mb-2">📢 ADVERTISEMENT</div>
+        <h4 class="text-xl font-bold text-white mb-2">{{ ad.product }}</h4>
+        <p class="text-yellow-50 text-sm">💰 Featured Product</p>
+        <div class="mt-4 pt-4 border-t border-yellow-400">
+          <p class="text-xs text-yellow-100">Expires: {{ ad.expires_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+
+  <!-- Spectator Links -->
+  <div class="mt-8 bg-gray-800 p-4 rounded-lg text-center">
+    <p class="text-gray-400 mb-2">Want to watch instead?</p>
+    <a href="/spectate/maze" class="text-blue-400 hover:text-blue-300">👁️ Enter Spectator Mode</a>
+  </div>
+</div>
+{% endblock %}

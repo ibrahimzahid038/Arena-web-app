@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .game-bg-connect-four {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(234, 179, 8, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-4xl mx-auto game-bg-connect-four min-h-screen">
+  <h2 class="text-4xl font-bold mb-8">Connect Four</h2>
+
+  <div class="grid md:grid-cols-3 gap-8">
+    <!-- Game Board -->
+    <div class="md:col-span-2">
+      <h3 class="text-xl font-bold mb-2">
+        {% if vs_computer %}
+          🤖 Playing vs Computer
+        {% else %}
+          👥 2-Player Game
+        {% endif %}
+      </h3>
+      
+      <!-- Column Buttons -->
+      <div class="flex gap-1 mb-3">
+        {% for c in range(7) %}
+          <form method="post" class="flex-1 m-0">
+            <input type="hidden" name="action" value="move">
+            <input type="hidden" name="col" value="{{ c }}">
+            <button class="w-full bg-blue-600 p-2 rounded hover:bg-blue-700 transition font-bold text-sm" onclick="playSound('click')">↓ {{ c+1 }}</button>
+          </form>
+        {% endfor %}
+      </div>
+
+      <!-- Game Board Display -->
+      <div class="bg-gray-800 p-4 rounded-lg inline-block mb-6">
+        {% for row in board %}
+          <div class="flex gap-1 mb-1">
+            {% for cell in row %}
+              <div class="w-12 h-12 bg-blue-600 border-2 border-blue-800 rounded-full flex items-center justify-center text-lg font-bold">
+                {% if cell == "X" %}
+                  <span class="text-red-400">●</span>
+                {% elif cell == "O" %}
+                  <span class="text-yellow-400">●</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Game Status -->
+      <div class="mt-6 bg-gray-800 p-6 rounded-lg">
+        {% if winner %}
+          <p class="text-2xl font-bold text-green-400 mb-4" onclick="playSound('win')">🎉 Player {{ winner }} Wins!</p>
+          <form method="post" class="space-y-2">
+            <input type="hidden" name="action" value="replay">
+            <button type="submit" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-semibold" onclick="playSound('click')">🔄 Play Again</button>
+          </form>
+        {% else %}
+          <p class="text-lg">Current Turn: <span class="font-bold text-yellow-400">{{ "X (Red)" if turn == "X" else "O (Yellow)" }}</span></p>
+          {% if vs_computer and turn == "O" %}
+            <p class="text-sm text-gray-400 mt-2">💭 Computer is making a move...</p>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Game Mode Links -->
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <a href="/connect-four" class="bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">2-Player Mode</a>
+        <a href="/connect-four?vs_computer=true" class="bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">vs AI Mode</a>
+      </div>
+    </div>
+
+    <!-- Game Info -->
+    <div class="bg-gray-800 p-6 rounded-lg h-fit">
+      <h3 class="text-xl font-bold mb-4">Game Rules</h3>
+      <ul class="space-y-2 text-gray-300 text-sm">
+        <li>✓ Click column buttons</li>
+        <li>✓ Pieces drop down</li>
+        <li>✓ Get 4 in a row to win</li>
+        <li>✓ Horizontal, vertical, or diagonal</li>
+        <li>✓ Board: 6 rows × 7 columns</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Color Guide</h3>
+      <div class="space-y-2 text-sm">
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-red-400 rounded-full"></span>Your Pieces (X)</p>
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-yellow-400 rounded-full"></span>Opponent (O)</p>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Game Info</h3>
+      <div class="space-y-2 text-sm bg-gray-700 p-4 rounded">
+        <p class="text-gray-400">Mode: <span class="font-bold">{% if vs_computer %}vs AI{% else %}2-Player{% endif %}</span></p>
+        <p class="text-gray-400">Status: {% if winner %}<span class="text-green-400 font-bold">Complete</span>{% else %}<span class="text-yellow-400 font-bold">In Progress</span>{% endif %}</p>
+      </div>
+
+      <a href="/dashboard" class="mt-6 block bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">Back to Dashboard</a>
+    </div>
+  </div>
+
+
+  <!-- Advertisements -->
+  {% if ads %}
+  <div class="mt-8">
+    <h3 class="text-2xl font-bold mb-4 text-center">Featured Advertisements</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for ad in ads %}
+      <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 p-6 rounded-lg border-2 border-yellow-400 shadow-lg hover:shadow-xl transition">
+        <div class="text-yellow-100 text-sm font-semibold mb-2">📢 ADVERTISEMENT</div>
+        <h4 class="text-xl font-bold text-white mb-2">{{ ad.product }}</h4>
+        <p class="text-yellow-50 text-sm">💰 Featured Product</p>
+        <div class="mt-4 pt-4 border-t border-yellow-400">
+          <p class="text-xs text-yellow-100">Expires: {{ ad.expires_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+
+  <!-- Spectator Links -->
+  <div class="mt-8 bg-gray-800 p-4 rounded-lg text-center">
+    <p class="text-gray-400 mb-2">Want to watch instead?</p>
+    <a href="/spectate/connect_four" class="text-blue-400 hover:text-blue-300">👁️ Enter Spectator Mode</a>
+  </div>
+</div>
+{% endblock %}

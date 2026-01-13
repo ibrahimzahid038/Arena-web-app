@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .spectate-bg-maze {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-4xl mx-auto spectate-bg-maze min-h-screen">
+  <h2 class="text-4xl font-bold mb-8">👁️ Spectate: Maze Challenge</h2>
+  <p class="text-gray-400 mb-6">Live game view - Updates automatically every 2 seconds</p>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <!-- Game Board -->
+    <div>
+      <h3 class="text-xl font-bold mb-4">Live Maze Board</h3>
+      <div id="board" class="bg-gray-800 p-2 rounded-lg inline-block mb-6" style="display: inline-grid; grid-template-columns: repeat(7, 1fr); gap: 2px;">
+        <p class="text-gray-400">Loading...</p>
+      </div>
+
+      <!-- Game Status -->
+      <div class="mt-6 bg-gray-800 p-6 rounded-lg">
+        <p id="status" class="text-lg">Waiting for game data...</p>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="bg-gray-800 p-6 rounded-lg h-fit">
+      <h3 class="text-xl font-bold mb-4">Spectator Info</h3>
+      <ul class="space-y-2 text-gray-300 text-sm">
+        <li>✓ Watch players navigate the maze</li>
+        <li>✓ Each maze is unique and randomly generated</li>
+        <li>✓ Real-time movement updates</li>
+        <li>✓ No login required</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Legend</h3>
+      <div class="space-y-2 text-sm">
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-green-500 rounded">👤</span>Player Position</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-yellow-400 rounded">🚩</span>Goal/Exit</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-gray-600 rounded border-2 border-gray-700"></span>Wall</p>
+        <p class="flex items-center gap-2"><span class="w-6 h-6 bg-gray-900 border-2 border-gray-700 rounded"></span>Path</p>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Game Info</h3>
+      <div class="space-y-2 bg-gray-700 p-4 rounded text-sm">
+        <p id="game-info-position">Position: [1, 1]</p>
+        <p id="game-info-moves">Moves: 0</p>
+        <p id="game-info-status">Status: In Progress</p>
+      </div>
+
+      <a href="/spectate" class="mt-6 block bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition">Back to Spectate Menu</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function updateGame() {
+    try {
+      const response = await fetch('/api/game-state/maze');
+      const data = await response.json();
+      
+      if (data.state) {
+        const gameData = JSON.parse(data.state);
+        const maze = gameData.maze;
+        const playerPos = gameData.player_pos;
+        const moves = gameData.moves || 0;
+        
+        const boardDiv = document.getElementById('board');
+        boardDiv.style.gridTemplateColumns = `repeat(${maze[0].length}, 1fr)`;
+        
+        let html = '';
+        maze.forEach((row, r) => {
+          row.forEach((cell, c) => {
+            let bgColor = 'bg-gray-900 border-2 border-gray-700';
+            let content = '';
+            
+            if (cell === 1) {
+              bgColor = 'bg-gray-600 border-2 border-gray-700';
+            } else if (r === playerPos[0] && c === playerPos[1]) {
+              bgColor = 'bg-green-500 text-white';
+              content = '👤';
+            } else if (r === maze.length - 2 && c === maze[0].length - 2) {
+              bgColor = 'bg-yellow-400 text-black';
+              content = '🚩';
+            }
+            
+            html += `<div class="w-10 h-10 flex items-center justify-center font-bold rounded ${bgColor}">${content}</div>`;
+          });
+        });
+        
+        boardDiv.innerHTML = html;
+        
+        document.getElementById('game-info-position').textContent = `Position: [${playerPos[0]}, ${playerPos[1]}]`;
+        document.getElementById('game-info-moves').textContent = `Moves: ${moves}`;
+        
+        const statusDiv = document.getElementById('status');
+        if (playerPos[0] === maze.length - 2 && playerPos[1] === maze[0].length - 2) {
+          statusDiv.innerHTML = `<p class="text-2xl font-bold text-green-400">🎉 Player escaped! (${moves} moves)</p>`;
+          document.getElementById('game-info-status').textContent = 'Status: Complete!';
+        } else {
+          statusDiv.innerHTML = `<p class="text-lg">Player navigating maze...</p>`;
+          document.getElementById('game-info-status').textContent = 'Status: In Progress';
+        }
+      }
+    } catch (error) {
+      console.log('Game not started yet');
+    }
+  }
+
+  updateGame();
+  setInterval(updateGame, 2000);
+</script>
+{% endblock %}
