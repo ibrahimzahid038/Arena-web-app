@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .spectate-bg-c4 {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(234, 179, 8, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-4xl mx-auto spectate-bg-c4 min-h-screen">
+  <h2 class="text-4xl font-bold mb-8">👁️ Spectate: Connect Four</h2>
+  <p class="text-gray-400 mb-6">Live game view - Updates automatically every 2 seconds</p>
+
+  <div class="grid md:grid-cols-2 gap-8">
+    <!-- Game Board -->
+    <div>
+      <h3 class="text-xl font-bold mb-4">Live Game Board</h3>
+      <div id="board" class="bg-gray-800 p-4 rounded-lg inline-block mb-6">
+        <p class="text-gray-400">Loading...</p>
+      </div>
+
+      <!-- Game Status -->
+      <div class="mt-6 bg-gray-800 p-6 rounded-lg">
+        <p id="status" class="text-lg">Waiting for game data...</p>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="bg-gray-800 p-6 rounded-lg h-fit">
+      <h3 class="text-xl font-bold mb-4">Spectator Info</h3>
+      <ul class="space-y-2 text-gray-300">
+        <li>✓ You are in spectator mode</li>
+        <li>✓ Watch players drop pieces</li>
+        <li>✓ Real-time board updates</li>
+        <li>✓ No login required</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Color Guide</h3>
+      <div class="space-y-2 text-sm">
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-red-400 rounded-full"></span>Red (X)</p>
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-yellow-400 rounded-full"></span>Yellow (O)</p>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Game Info</h3>
+      <div class="space-y-2 bg-gray-700 p-4 rounded text-sm">
+        <p id="game-info-turn">Current Turn: X</p>
+        <p id="game-info-status">Status: In Progress</p>
+      </div>
+
+      <a href="/spectate" class="mt-6 block bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition">Back to Spectate Menu</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function updateGame() {
+    try {
+      const response = await fetch('/api/game-state/connect_four');
+      const data = await response.json();
+      
+      if (data.state) {
+        const board = JSON.parse(data.state);
+        const boardDiv = document.getElementById('board');
+        
+        let html = '';
+        board.forEach(row => {
+          html += '<div class="flex gap-1 mb-1">';
+          row.forEach(cell => {
+            let color = 'bg-gray-500';
+            if (cell === 'X') color = 'bg-red-400';
+            if (cell === 'O') color = 'bg-yellow-400';
+            html += `<div class="w-10 h-10 ${color} border-2 border-blue-600 rounded-full"></div>`;
+          });
+          html += '</div>';
+        });
+        
+        boardDiv.innerHTML = html;
+        
+        const statusDiv = document.getElementById('status');
+        if (data.winner) {
+          statusDiv.innerHTML = `<p class="text-2xl font-bold text-green-400">🎉 Player ${data.winner} Wins!</p>`;
+        } else {
+          statusDiv.innerHTML = `<p class="text-lg">Current Turn: <span class="font-bold text-yellow-400">${data.turn === 'X' ? 'Red (X)' : 'Yellow (O)'}</span></p>`;
+        }
+        
+        document.getElementById('game-info-turn').textContent = `Current Turn: ${data.turn}`;
+        document.getElementById('game-info-status').textContent = `Status: ${data.winner ? 'Complete' : 'In Progress'}`;
+      }
+    } catch (error) {
+      console.log('Game not started yet');
+    }
+  }
+
+  updateGame();
+  setInterval(updateGame, 2000);
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Match - ARENA{% endblock %}
+{% block content %}
+<style>
+  .match-bg {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-2xl mx-auto match-bg min-h-screen py-12 flex flex-col items-center justify-center">
+  <div class="bg-gray-800 p-12 rounded-xl border-2 border-blue-500 text-center w-full">
+    <h1 class="text-4xl font-bold text-blue-300 mb-8">⚔️ Match Lobby</h1>
+    
+    <div class="grid grid-cols-3 gap-6 mb-10">
+      <!-- Player 1 -->
+      <div class="bg-gray-700 p-6 rounded-lg">
+        <p class="text-gray-400 text-sm mb-2">Player 1</p>
+        <p class="text-2xl font-bold text-blue-300">
+          {% if is_player1 %}
+            {{ current_user.username }} (YOU)
+          {% else %}
+            {{ match.player1.username }}
+          {% endif %}
+        </p>
+        <div id="player1-status" class="mt-4 text-sm">
+          <span class="text-yellow-400">⏳ Waiting...</span>
+        </div>
+      </div>
+
+      <!-- VS -->
+      <div class="flex flex-col items-center justify-center">
+        <p class="text-gray-400 text-lg font-bold">VS</p>
+        <p class="text-sm text-gray-500 mt-2">{{ match.game_type }}</p>
+      </div>
+
+      <!-- Player 2 -->
+      <div class="bg-gray-700 p-6 rounded-lg">
+        <p class="text-gray-400 text-sm mb-2">Player 2</p>
+        <p class="text-2xl font-bold text-red-300">
+          {% if not is_player1 %}
+            {{ current_user.username }} (YOU)
+          {% else %}
+            {{ match.player2.username }}
+          {% endif %}
+        </p>
+        <div id="player2-status" class="mt-4 text-sm">
+          <span class="text-yellow-400">⏳ Waiting...</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="ready-btn" onclick="readyUp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition text-lg mb-3">✓ Ready!</button>
+    <button onclick="leaveMatch()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">Leave Match</button>
+  </div>
+</div>
+
+<script>
+  const matchId = {{ match.id }};
+  const isPlayer1 = {{ 'true' if is_player1 else 'false' }};
+  let playerReady = false;
+  let checkInterval;
+  
+  function readyUp() {
+    if (!playerReady) {
+      playerReady = true;
+      document.getElementById('ready-btn').textContent = '✓ Ready (Waiting for opponent...)';
+      document.getElementById('ready-btn').disabled = true;
+      document.getElementById('ready-btn').classList.add('opacity-50', 'cursor-not-allowed');
+      
+      // Update your status
+      const statusElement = isPlayer1 ? document.getElementById('player1-status') : document.getElementById('player2-status');
+      statusElement.innerHTML = '<span class="text-green-400">✓ Ready!</span>';
+      
+      // Send ready status to server
+      fetch(`/set-player-ready/${matchId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ player_number: isPlayer1 ? 1 : 2 })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Start checking if opponent is also ready
+          checkOpponentReady();
+        }
+      })
+      .catch(error => console.error('Error marking ready:', error));
+    }
+  }
+  
+  function checkOpponentReady() {
+    fetch(`/check-match-status/${matchId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const player1Ready = data.player1_ready;
+          const player2Ready = data.player2_ready;
+          
+          // Update statuses
+          document.getElementById('player1-status').innerHTML = player1Ready ? 
+            '<span class="text-green-400">✓ Ready!</span>' : 
+            '<span class="text-yellow-400">⏳ Waiting...</span>';
+          
+          document.getElementById('player2-status').innerHTML = player2Ready ? 
+            '<span class="text-green-400">✓ Ready!</span>' : 
+            '<span class="text-yellow-400">⏳ Waiting...</span>';
+          
+          // If both ready, start game
+          if (player1Ready && player2Ready) {
+            clearInterval(checkInterval);
+            document.querySelector('h1').textContent = '🎮 Game Starting...';
+            setTimeout(() => {
+              window.location.href = `/start-match/${matchId}`;
+            }, 1500);
+          }
+        }
+      })
+      .catch(error => console.error('Error checking match status:', error));
+  }
+  
+  function leaveMatch() {
+    if (confirm('Are you sure you want to leave? This will cancel the match.')) {
+      fetch(`/leave-match/${matchId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.history.back();
+          }
+        });
+    }
+  }
+  
+  // Check opponent status every 1 second if player is ready
+  setInterval(() => {
+    if (playerReady) {
+      checkOpponentReady();
+    }
+  }, 1000);
+</script>
+{% endblock %}

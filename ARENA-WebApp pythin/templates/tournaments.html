@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Tournaments - ARENA{% endblock %}
+{% block content %}
+<style>
+  .tournaments-bg {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-6xl mx-auto tournaments-bg min-h-screen py-12">
+  <h1 class="text-5xl font-bold mb-4 text-center scale-in">🎮 Tournaments</h1>
+  <p class="text-gray-400 text-center mb-12 fade-in">Compete in tournaments and win prizes</p>
+
+  {% if not tournaments %}
+  <div class="bg-gray-800 p-8 rounded-xl text-center border-2 border-gray-600">
+    <p class="text-gray-400">No tournaments available yet.</p>
+    <a href="/dashboard" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">Back to Dashboard</a>
+  </div>
+  {% else %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for tournament in tournaments %}
+    <div class="bg-gray-800 p-6 rounded-xl border-2 border-cyan-500 hover:border-cyan-400 transition card-hover">
+      <div class="flex justify-between items-start mb-3">
+        <h2 class="text-2xl font-bold text-cyan-300">{{ tournament.name }}</h2>
+        <span class="px-3 py-1 rounded-full text-xs font-bold {% if tournament.status == 'upcoming' %}bg-yellow-600{% elif tournament.status == 'ongoing' %}bg-green-600{% else %}bg-gray-600{% endif %} text-white">
+          {{ tournament.status }}
+        </span>
+      </div>
+      
+      <p class="text-gray-400 mb-4">{{ tournament.description or 'No description' }}</p>
+      
+      <div class="space-y-2 mb-4 text-sm text-gray-400">
+        <p>🎮 Game: <span class="text-cyan-300">{{ tournament.game_type }}</span></p>
+        <p>👥 Participants: <span class="text-cyan-300">{{ tournament.participants|length }}/{{ tournament.max_participants or 'Unlimited' }}</span></p>
+        {% if tournament.league %}
+        <p>🏆 League: <span class="text-cyan-300">{{ tournament.league.name }}</span></p>
+        {% endif %}
+        <p>👤 Created by: <span class="text-blue-300">{{ tournament.creator.username }}</span></p>
+      </div>
+
+      {% if current_user.is_authenticated %}
+        {% set is_participant = tournament.participants|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}
+        {% if is_participant %}
+          <button class="w-full bg-green-600 text-white font-bold py-2 rounded-lg cursor-not-allowed opacity-75">✓ Registered</button>
+        {% elif tournament.status == 'completed' %}
+          <button class="w-full bg-gray-600 text-white font-bold py-2 rounded-lg cursor-not-allowed">Tournament Ended</button>
+        {% elif tournament.max_participants and tournament.participants|length >= tournament.max_participants %}
+          <button class="w-full bg-gray-600 text-white font-bold py-2 rounded-lg cursor-not-allowed">Tournament Full</button>
+        {% else %}
+          <form method="POST" action="/join-tournament" style="display:inline;width:100%;">
+            <input type="hidden" name="tournament_id" value="{{ tournament.id }}">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition button-hover">Join Tournament</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <a href="/login" class="block text-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition">Login to Join</a>
+      {% endif %}
+
+      <a href="/tournament/{{ tournament.id }}" class="block text-center mt-3 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition">View Details</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="mt-12 text-center">
+    <a href="/dashboard" class="inline-block bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition">← Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

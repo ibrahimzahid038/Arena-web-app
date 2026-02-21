@@ -7,43 +7,45 @@
     background-attachment: fixed;
   }
 </style>
-<div class="flex flex-col items-center justify-center w-full hero-bg min-h-screen rounded-xl p-8">
+<div class="w-full hero-bg min-h-screen rounded-xl">
   <!-- Hero Section -->
-  <div class="text-center py-12 fade-in">
-    <h1 class="text-6xl font-bold mb-4 scale-in">🎮 Welcome to ARENA</h1>
-    <p class="text-2xl text-gray-400 mb-8 slide-in-right">A competitive gaming platform for players, spectators, and advertisers</p>
-    
-    {% if not current_user.is_authenticated %}
-      <div class="flex gap-6 justify-center flex-wrap">
-        <a href="/signup" class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-blue-800 button-hover scale-in" onclick="playSound('click')">🚀 Get Started</a>
-        <a href="/spectate" class="bg-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-600 button-hover scale-in" onclick="playSound('click')">👁️ Watch Games</a>
+  <div class="flex flex-col items-center justify-center w-full min-h-screen px-4 py-12">
+    <div class="text-center py-12 fade-in max-w-4xl">
+      <h1 class="text-6xl font-bold mb-4 scale-in">🎮 Welcome to ARENA</h1>
+      <p class="text-2xl text-gray-400 mb-8 slide-in-right">A competitive gaming platform for players, spectators, and advertisers</p>
+      
+      {% if not current_user.is_authenticated %}
+        <div class="flex gap-6 justify-center flex-wrap mb-12">
+          <a href="/signup" class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-4 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-blue-800 button-hover scale-in" onclick="playSound('click')">🚀 Get Started</a>
+          <a href="/spectate" class="bg-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-600 button-hover scale-in" onclick="playSound('click')">👁️ Watch Games</a>
+        </div>
+      {% else %}
+        <a href="/dashboard" class="bg-gradient-to-r from-green-600 to-green-700 px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-green-800 button-hover inline-block scale-in mb-12" onclick="playSound('click')">📊 Go to Dashboard</a>
+      {% endif %}
+
+      <!-- Features Grid -->
+      <div class="grid md:grid-cols-3 gap-6 mt-16 w-full max-w-5xl mx-auto">
+        <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-blue-500 border-2 border-transparent cursor-pointer" onclick="playSound('click')">
+          <h3 class="text-2xl font-bold mb-3">🎮 Play Games</h3>
+          <p class="text-gray-400">Compete in Tic Tac Toe, Checkers, and Maze challenges with other players or AI opponents.</p>
+        </div>
+        <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-purple-500 border-2 border-transparent cursor-pointer" style="animation-delay: 0.1s;" onclick="playSound('click')">
+          <h3 class="text-2xl font-bold mb-3">👁️ Spectate</h3>
+          <p class="text-gray-400">Watch live games without logging in. Experience the thrill of competitive gaming in real-time.</p>
+        </div>
+        <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-yellow-500 border-2 border-transparent cursor-pointer" style="animation-delay: 0.2s;" onclick="playSound('click')">
+          <h3 class="text-2xl font-bold mb-3">📢 Advertise</h3>
+          <p class="text-gray-400">Promote your products to thousands of players with our advertising platform.</p>
+        </div>
       </div>
-    {% else %}
-      <a href="/dashboard" class="bg-gradient-to-r from-green-600 to-green-700 px-8 py-4 rounded-lg text-lg font-semibold hover:from-green-700 hover:to-green-800 button-hover inline-block scale-in" onclick="playSound('click')">📊 Go to Dashboard</a>
-    {% endif %}
-  </div>
 
-  <!-- Features Grid -->
-  <div class="grid md:grid-cols-3 gap-6 mt-16 w-full max-w-5xl">
-    <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-blue-500 border-2 border-transparent cursor-pointer" onclick="playSound('click')">
-      <h3 class="text-2xl font-bold mb-3">🎮 Play Games</h3>
-      <p class="text-gray-400">Compete in Tic Tac Toe, Connect Four, and Maze challenges with other players or AI opponents.</p>
+      <!-- CTA Section -->
+      <div class="mt-16 bg-gradient-to-r from-purple-600 to-blue-600 bg-opacity-90 backdrop-blur p-12 rounded-lg text-center w-full max-w-3xl mx-auto fade-in" style="animation-delay: 0.3s;">
+        <h2 class="text-4xl font-bold mb-4">⚡ Ready to Join?</h2>
+        <p class="text-gray-200 mb-8 text-lg">Create an account as a player and start playing games today!</p>
+        <a href="/signup" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold button-hover inline-block" onclick="playSound('click')">Sign Up Now</a>
+      </div>
     </div>
-    <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-purple-500 border-2 border-transparent cursor-pointer" style="animation-delay: 0.1s;" onclick="playSound('click')">
-      <h3 class="text-2xl font-bold mb-3">👁️ Spectate</h3>
-      <p class="text-gray-400">Watch live games without logging in. Experience the thrill of competitive gaming in real-time.</p>
-    </div>
-    <div class="bg-gray-800 bg-opacity-80 backdrop-blur p-8 rounded-lg card-hover scale-in hover:border-2 hover:border-yellow-500 border-2 border-transparent cursor-pointer" style="animation-delay: 0.2s;" onclick="playSound('click')">
-      <h3 class="text-2xl font-bold mb-3">📢 Advertise</h3>
-      <p class="text-gray-400">Promote your products to thousands of players with our advertising platform.</p>
-    </div>
-  </div>
-
-  <!-- CTA Section -->
-  <div class="mt-16 bg-gradient-to-r from-purple-600 to-blue-600 bg-opacity-90 backdrop-blur p-12 rounded-lg text-center w-full max-w-3xl fade-in" style="animation-delay: 0.3s;">
-    <h2 class="text-4xl font-bold mb-4">⚡ Ready to Join?</h2>
-    <p class="text-gray-200 mb-8 text-lg">Create an account as a player and start playing games today!</p>
-    <a href="/signup" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold button-hover inline-block" onclick="playSound('click')">Sign Up Now</a>
   </div>
 </div>
 {% endblock %}

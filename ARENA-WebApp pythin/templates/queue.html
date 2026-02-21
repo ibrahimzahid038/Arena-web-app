@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Matchmaking Queue - ARENA{% endblock %}
+{% block content %}
+<style>
+  .queue-bg {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    background-attachment: fixed;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+</style>
+
+<div class="max-w-2xl mx-auto queue-bg min-h-screen py-12 flex flex-col items-center justify-center">
+  <div class="bg-gray-800 p-12 rounded-xl border-2 border-blue-500 text-center">
+    <div class="mb-8">
+      <div class="text-6xl mb-4 spinner">⚔️</div>
+      <h1 class="text-4xl font-bold text-blue-300 mb-4">Finding Opponent...</h1>
+      <p class="text-gray-400 text-lg mb-8">{{ game_type }} • {{ context_type }}</p>
+      
+      <div class="bg-gray-700 p-6 rounded-lg mb-8">
+        <p class="text-gray-300">Waiting for another player to join the queue</p>
+        <p id="wait-time" class="text-sm text-gray-400 mt-2">⏱️ Waiting: 0s</p>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="leaveQueue()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">Leave Queue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const queueId = {{ queue_id }};
+  let startTime = Date.now();
+  let checkInterval;
+  
+  function updateWaitTime() {
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('wait-time').textContent = `⏱️ Waiting: ${seconds}s`;
+  }
+  
+  function checkForMatch() {
+    fetch(`/check-queue/${queueId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.found) {
+          // Match found!
+          clearInterval(checkInterval);
+          document.querySelector('.spinner').innerHTML = '🎮';
+          document.querySelector('h1').textContent = `Matched with ${data.opponent}!`;
+          document.querySelector('p').textContent = 'Starting game...';
+          
+          setTimeout(() => {
+            window.location.href = `/play-match/${data.match_id}`;
+          }, 1500);
+        }
+      })
+      .catch(error => console.error('Error checking queue:', error));
+  }
+  
+  function leaveQueue() {
+    if (confirm('Are you sure you want to leave the queue?')) {
+      fetch(`/leave-queue/${queueId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.history.back();
+          }
+        });
+    }
+  }
+  
+  // Check for match every 2 seconds
+  checkInterval = setInterval(() => {
+    checkForMatch();
+    updateWaitTime();
+  }, 2000);
+  
+  // Initial check
+  checkForMatch();
+  updateWaitTime();
+</script>
+{% endblock %}

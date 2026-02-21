@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .game-bg-checkers {
+    background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(101, 67, 33, 0.1) 100%);
+    background-attachment: fixed;
+  }
+  .checkers-board {
+    display: inline-grid;
+    grid-template-columns: repeat(8, 50px);
+    gap: 0;
+    background: #333;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .board-square {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid #555;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  .board-square.light {
+    background: #d2b48c;
+  }
+  .board-square.dark {
+    background: #8b4513;
+  }
+  .board-square.selected {
+    box-shadow: inset 0 0 15px rgba(255, 255, 0, 0.8) !important;
+    background: rgba(255, 255, 0, 0.3) !important;
+  }
+  .board-square.valid-move {
+    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.6) !important;
+    background: rgba(0, 255, 0, 0.2) !important;
+  }
+  .board-square.valid-move:hover {
+    background: rgba(0, 255, 0, 0.4) !important;
+  }
+  @keyframes slidePiece {
+    from {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes popPiece {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  .piece-animating {
+    animation: popPiece 0.3s ease-in-out;
+  }
+  .red-piece {
+    width: 40px;
+    height: 40px;
+    background: #ff4444;
+    border-radius: 50%;
+    border: 2px solid #cc0000;
+  }
+  .red-piece.king::after {
+    content: "♔";
+    position: relative;
+    color: gold;
+    font-weight: bold;
+  }
+  .black-piece {
+    width: 40px;
+    height: 40px;
+    background: #333;
+    border-radius: 50%;
+    border: 2px solid #000;
+  }
+  .black-piece.king::after {
+    content: "♔";
+    position: relative;
+    color: gold;
+    font-weight: bold;
+  }
+</style>
+
+<div class="max-w-6xl mx-auto game-bg-checkers min-h-screen p-6">
+  <h2 class="text-4xl font-bold mb-8">♟️ Checkers</h2>
+
+  <div class="grid md:grid-cols-3 gap-8">
+    <!-- Game Board -->
+    <div class="md:col-span-2">
+      <h3 class="text-xl font-bold mb-4">
+        {% if vs_computer %}
+          🤖 Playing vs Computer
+        {% else %}
+          👥 2-Player Game
+        {% endif %}
+      </h3>
+      
+      <!-- Checkers Board -->
+      <div class="checkers-board mb-6">
+        {% for row in range(8) %}
+          {% for col in range(8) %}
+            {% set is_light = (row + col) % 2 == 0 %}
+            <div class="board-square {% if is_light %}light{% else %}dark{% endif %}" 
+                 data-row="{{ row }}" data-col="{{ col }}"
+                 onclick="selectSquare({{ row }}, {{ col }})">
+              {% set piece = board[row][col] %}
+              {% if piece %}
+                {% set is_red = piece.lower() == 'r' %}
+                {% set is_king = piece.isupper() %}
+                <div class="{% if is_red %}red-piece{% else %}black-piece{% endif %} {% if is_king %}king{% endif %}"
+                     onclick="event.stopPropagation(); selectSquare({{ row }}, {{ col }})"></div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+
+      <!-- Game Status -->
+      <div class="mt-6 bg-gray-800 p-6 rounded-lg">
+        {% if winner %}
+          <p class="text-2xl font-bold text-green-400 mb-4" onclick="playSound('win')">🎉 {{ winner|upper }} Wins!</p>
+          <form method="post" class="space-y-2">
+            <input type="hidden" name="action" value="replay">
+            <button type="submit" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-semibold" onclick="playSound('click')">🔄 Play Again</button>
+          </form>
+        {% else %}
+          <p class="text-lg">Current Turn: <span class="font-bold {% if turn == 'red' %}text-red-400{% else %}text-gray-300{% endif %}">{{ turn|upper }}</span></p>
+          {% if vs_computer and turn == "black" %}
+            <p class="text-sm text-gray-400 mt-2">💭 Computer is making a move...</p>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Game Mode Links -->
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <a href="/checkers" class="bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">2-Player Mode</a>
+        <a href="/checkers?vs_computer=true" class="bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">vs AI Mode</a>
+      </div>
+    </div>
+
+    <!-- Game Info -->
+    <div class="bg-gray-800 p-6 rounded-lg h-fit">
+      <h3 class="text-xl font-bold mb-4">Game Rules</h3>
+      <ul class="space-y-2 text-gray-300 text-sm">
+        <li>✓ Click a piece to select it</li>
+        <li>✓ Click destination to move</li>
+        <li>✓ Move diagonally on dark squares</li>
+        <li>✓ Jump opponent to capture</li>
+        <li>✓ Reach opposite end for king</li>
+        <li>✓ Kings move any direction</li>
+      </ul>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Color Guide</h3>
+      <div class="space-y-2 text-sm">
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-red-400 rounded-full border border-red-600"></span>Red Pieces</p>
+        <p class="flex items-center gap-2"><span class="w-4 h-4 bg-gray-700 rounded-full border border-black"></span>Black Pieces</p>
+        <p class="flex items-center gap-2"><span class="text-yellow-400">♔</span>King Piece</p>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Game Info</h3>
+      <div class="space-y-2 text-sm bg-gray-700 p-4 rounded">
+        <p class="text-gray-400">Mode: <span class="font-bold">{% if vs_computer %}vs AI{% else %}2-Player{% endif %}</span></p>
+        <p class="text-gray-400">Status: {% if winner %}<span class="text-green-400 font-bold">Complete</span>{% else %}<span class="text-yellow-400 font-bold">In Progress</span>{% endif %}</p>
+      </div>
+
+      <div class="flex gap-4 mt-6">
+        <form method="post" class="flex-1">
+          <input type="hidden" name="action" value="replay">
+          <button type="submit" class="w-full bg-blue-600 p-2 rounded text-center hover:bg-blue-700 transition text-sm font-bold" onclick="playSound('click')">🔄 Reset Game</button>
+        </form>
+        <a href="/dashboard" class="flex-1 block bg-gray-700 p-2 rounded text-center hover:bg-gray-600 transition text-sm" onclick="playSound('click')">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advertisements -->
+  {% if ads %}
+  <div class="mt-8">
+    <h3 class="text-2xl font-bold mb-4 text-center">Featured Advertisements</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for ad in ads %}
+        <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-lg text-white">
+          <h4 class="font-bold">{{ ad.product }}</h4>
+          <p class="text-sm">Expires: {{ ad.expires_at.strftime('%m/%d') }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+let selectedSquare = null;
+let validMoves = [];
+
+function getValidMovesForPiece(board, row, col) {
+  const piece = board[row][col];
+  if (!piece) return [];
+  
+  const isRed = piece.toLowerCase() === 'r';
+  const isKing = piece === piece.toUpperCase() && (piece.toLowerCase() === 'r' || piece.toLowerCase() === 'b');
+  const moves = [];
+  
+  // Determine which directions are valid
+  const directions = isKing ? [[-1,-1], [-1,1], [1,-1], [1,1]] : 
+                     isRed ? [[1,-1], [1,1]] : [[-1,-1], [-1,1]];
+  
+  // Check adjacent moves
+  for (let [dr, dc] of directions) {
+    const nr = row + dr;
+    const nc = col + dc;
+    console.log('Checking adjacent:', nr, nc, 'piece:', board[nr] ? board[nr][nc] : 'out of bounds');
+    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && !board[nr][nc]) {
+      console.log('  -> Valid move');
+      moves.push([nr, nc]);
+    }
+  }
+  
+  // Check capture moves
+  for (let [dr, dc] of directions) {
+    const nr = row + dr;
+    const nc = col + dc;
+    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+      const opponent = board[nr][nc];
+      console.log('Checking capture:', nr, nc, 'opponent:', opponent);
+      if (opponent && opponent.toLowerCase() !== piece.toLowerCase()) {
+        const jnr = nr + dr;
+        const jnc = nc + dc;
+        console.log('  -> Can jump to:', jnr, jnc);
+        if (jnr >= 0 && jnr < 8 && jnc >= 0 && jnc < 8 && !board[jnr][jnc]) {
+          console.log('  -> Valid capture move');
+          moves.push([jnr, jnc]);
+        }
+      }
+    }
+  }
+  
+  console.log('Total valid moves for', piece, 'at', row, col, ':', moves);
+  return moves;
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.board-square').forEach(sq => {
+    sq.classList.remove('selected', 'valid-move');
+  });
+  validMoves = [];
+}
+
+function selectSquare(row, col) {
+  console.log('🔵 selectSquare called:', row, col);
+  
+  const winner = '{{ winner }}';
+  console.log('Winner:', winner, 'Type:', typeof winner, 'Truthy:', !!winner);
+  if (winner && winner !== 'None') {
+    console.log('Game is over, returning');
+    return;
+  }
+  
+  try {
+    console.log('Attempting to parse board...');
+    const board = JSON.parse('{{ board | tojson }}');
+    console.log('Board parsed, rows:', board.length);
+    
+    const piece = board[row][col];
+    const currentTurn = '{{ turn }}';
+    console.log('Piece at', row, col, ':', piece, 'Current turn:', currentTurn);
+    
+    if (selectedSquare === null) {
+      // First click - select a piece
+      if (piece) {
+        const isRed = piece.toLowerCase() === 'r';
+        console.log('Is red:', isRed, 'Current turn is red:', currentTurn === 'red');
+        
+        // Check if it's the right player's turn
+        if ((isRed && currentTurn === 'red') || (!isRed && currentTurn === 'black')) {
+          console.log('Valid turn, selecting piece');
+          selectedSquare = [row, col];
+          const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+          console.log('Found square element:', square !== null);
+          if (square) {
+            square.classList.add('selected');
+            console.log('Added selected class');
+          }
+          
+          // Get and highlight valid moves
+          validMoves = getValidMovesForPiece(board, row, col);
+          console.log('Valid moves count:', validMoves.length, validMoves);
+          validMoves.forEach(([mr, mc]) => {
+            const moveSquare = document.querySelector(`[data-row="${mr}"][data-col="${mc}"]`);
+            if (moveSquare) {
+              moveSquare.classList.add('valid-move');
+            }
+          });
+          
+          playSound('click');
+        } else {
+          console.log('Not your turn');
+        }
+      } else {
+        console.log('No piece at this square');
+      }
+    } else {
+      // Second click - move piece or select different piece
+      const [fromRow, fromCol] = selectedSquare;
+      
+      if (fromRow === row && fromCol === col) {
+        // Deselect
+        clearHighlights();
+        selectedSquare = null;
+        playSound('click');
+      } else if (validMoves.some(([mr, mc]) => mr === row && mc === col)) {
+        // Valid move - animate and submit via fetch
+        console.log('🟢 VALID MOVE DETECTED');
+        console.log(`Moving from [${fromRow}, ${fromCol}] to [${row}, ${col}]`);
+        playSound('move');
+        
+        // Animate the piece
+        const fromSquare = document.querySelector(`[data-row="${fromRow}"][data-col="${fromCol}"]`);
+        const toSquare = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        const piece = fromSquare.querySelector('div');
+        
+        if (piece) {
+          piece.classList.add('piece-animating');
+        }
+        
+        // Wait for animation to complete
+        setTimeout(() => {
+          // Submit move via fetch
+          const formData = new FormData();
+          formData.append('action', 'move');
+          formData.append('from_r', fromRow);
+          formData.append('from_c', fromCol);
+          formData.append('to_r', row);
+          formData.append('to_c', col);
+          formData.append('vs_computer', '{{ "true" if vs_computer else "false" }}');
+          formData.append('match_id', '{{ match_id or "" }}');
+          
+          fetch('/checkers', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.text())
+          .then(html => {
+            // Reload with parameters preserved
+            const urlParams = new URLSearchParams(window.location.search);
+            let url = '/checkers';
+            if (urlParams.get('vs_computer')) url += '?vs_computer=true';
+            if (urlParams.get('match_id')) url += (url.includes('?') ? '&' : '?') + 'match_id=' + urlParams.get('match_id');
+            if (urlParams.get('league_id')) url += (url.includes('?') ? '&' : '?') + 'league_id=' + urlParams.get('league_id');
+            if (urlParams.get('tournament_id')) url += (url.includes('?') ? '&' : '?') + 'tournament_id=' + urlParams.get('tournament_id');
+            window.location.href = url;
+          })
+          .catch(error => {
+            console.error('Move error:', error);
+            location.reload();
+          });
+          
+          clearHighlights();
+          selectedSquare = null;
+        }, 300);
+      } else {
+        // Invalid move or select new piece
+        clearHighlights();
+        const newPiece = board[row][col];
+        if (newPiece) {
+          const isRed = newPiece.toLowerCase() === 'r';
+          
+          if ((isRed && currentTurn === 'red') || (!isRed && currentTurn === 'black')) {
+            selectedSquare = [row, col];
+            const square = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (square) square.classList.add('selected');
+            
+            validMoves = getValidMovesForPiece(board, row, col);
+            validMoves.forEach(([mr, mc]) => {
+              const moveSquare = document.querySelector(`[data-row="${mr}"][data-col="${mc}"]`);
+              if (moveSquare) moveSquare.classList.add('valid-move');
+            });
+            
+            playSound('click');
+          }
+        } else {
+          selectedSquare = null;
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error in selectSquare:', e);
+    console.error('Stack:', e.stack);
+  }
+}
+</script>
+{% endblock %}
