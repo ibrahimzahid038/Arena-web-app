@@ -5,6 +5,18 @@
     background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
     background-attachment: fixed;
   }
+  @keyframes slideIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes movePlayer {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: translateX(0) scale(1); }
+  }
+  .player-moving {
+    animation: movePlayer 0.4s ease-in-out;
+  }
 </style>
 
 <div class="max-w-4xl mx-auto game-bg-maze min-h-screen">
@@ -21,20 +33,20 @@
       <!-- Control Buttons -->
       <div class="grid grid-cols-3 gap-2 mb-6 w-32">
         <div></div>
-        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="up"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">↑</button></form>
+        <button type="button" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold" onclick="makeMove('up')">↑</button>
         <div></div>
         
-        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="left"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">←</button></form>
+        <button type="button" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold" onclick="makeMove('left')">←</button>
         <div class="bg-gray-600 p-3 rounded text-center">●</div>
-        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="right"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">→</button></form>
+        <button type="button" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold" onclick="makeMove('right')">→</button>
         
         <div></div>
-        <form method="post" class="m-0"><input type="hidden" name="action" value="move"><input type="hidden" name="direction" value="down"><button class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold">↓</button></form>
+        <button type="button" class="w-full bg-blue-600 p-3 rounded hover:bg-blue-700 transition font-bold" onclick="makeMove('down')">↓</button>
         <div></div>
       </div>
 
       <!-- Maze Grid -->
-      <div class="bg-gray-800 p-2 rounded-lg inline-block mb-6" style="display: inline-grid; grid-template-columns: repeat({{ maze[0]|length }}, 1fr); gap: 2px;">
+      <div id="maze-grid" class="bg-gray-800 p-2 rounded-lg inline-block mb-6" style="display: inline-grid; grid-template-columns: repeat({{ maze[0]|length }}, 1fr); gap: 2px;">
         {% for row in range(maze|length) %}
           {% for col in range(maze[0]|length) %}
             <div 
@@ -131,4 +143,39 @@
     <a href="/spectate/maze" class="text-blue-400 hover:text-blue-300">👁️ Enter Spectator Mode</a>
   </div>
 </div>
+
+<script>
+  function makeMove(direction) {
+    try {
+      playSound('move');
+      
+      const formData = new FormData();
+      formData.append('action', 'move');
+      formData.append('direction', direction);
+      formData.append('match_id', '{{ match_id or "" }}');
+      
+      fetch('/maze', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        console.log('Maze response received:', response.status);
+        return response.json();
+      })
+      .then(data => {
+        console.log('Maze move processed, reloading...');
+        // Reload page after move
+        setTimeout(() => location.reload(), 500);
+      })
+      .catch(error => {
+        console.error('Maze move error:', error);
+        alert('Error making move: ' + error);
+        location.reload();
+      });
+    } catch (e) {
+      console.error('Exception in makeMove:', e);
+      alert('Exception: ' + e);
+    }
+  }
+</script>
 {% endblock %}

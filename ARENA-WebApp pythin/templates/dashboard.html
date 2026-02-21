@@ -34,8 +34,8 @@
       <div class="space-y-3">
         <a href="/tic-tac-toe" class="block bg-blue-600 p-4 rounded-lg text-center hover:bg-blue-700 button-hover font-semibold transition" onclick="playSound('click')">Tic Tac Toe (2P)</a>
         <a href="/tic-tac-toe?vs_computer=true" class="block bg-blue-500 p-4 rounded-lg text-center hover:bg-blue-600 button-hover font-semibold transition" onclick="playSound('click')">Tic Tac Toe (AI)</a>
-        <a href="/connect-four" class="block bg-red-600 p-4 rounded-lg text-center hover:bg-red-700 button-hover font-semibold transition" onclick="playSound('click')">Connect Four (2P)</a>
-        <a href="/connect-four?vs_computer=true" class="block bg-red-500 p-4 rounded-lg text-center hover:bg-red-600 button-hover font-semibold transition" onclick="playSound('click')">Connect Four (AI)</a>
+        <a href="/checkers" class="block bg-red-600 p-4 rounded-lg text-center hover:bg-red-700 button-hover font-semibold transition" onclick="playSound('click')">Checkers (2P)</a>
+        <a href="/checkers?vs_computer=true" class="block bg-red-500 p-4 rounded-lg text-center hover:bg-red-600 button-hover font-semibold transition" onclick="playSound('click')">Checkers (AI)</a>
         <a href="/maze" class="block bg-yellow-600 p-4 rounded-lg text-center hover:bg-yellow-700 button-hover font-semibold transition" onclick="playSound('click')">Maze Challenge</a>
       </div>
     </div>
@@ -46,16 +46,29 @@
       <p class="text-gray-400 mb-6 font-semibold">Watch live games in real-time</p>
       <div class="space-y-3">
         <a href="/spectate/tic_tac_toe" class="block bg-green-600 p-4 rounded-lg text-center hover:bg-green-700 button-hover font-semibold transition" onclick="playSound('click')">Tic Tac Toe</a>
-        <a href="/spectate/connect_four" class="block bg-green-600 p-4 rounded-lg text-center hover:bg-green-700 button-hover font-semibold transition" onclick="playSound('click')">Connect Four</a>
+        <a href="/spectate/checkers" class="block bg-green-600 p-4 rounded-lg text-center hover:bg-green-700 button-hover font-semibold transition" onclick="playSound('click')">Checkers</a>
         <a href="/spectate/maze" class="block bg-green-600 p-4 rounded-lg text-center hover:bg-green-700 button-hover font-semibold transition" onclick="playSound('click')">Maze</a>
       </div>
     </div>
 
     <!-- Advertiser Section -->
     <div class="bg-gray-800 p-8 rounded-xl card-hover scale-in border-2 border-purple-500 hover:border-purple-400" style="animation-delay: 0.2s;">
-      <h2 class="text-2xl font-bold mb-6 text-purple-300">🎯 Info</h2>
-      <p class="text-gray-400 mb-6 font-semibold">Become an Admin</p>
-      <a href="/advertiser" class="block bg-purple-600 p-3 rounded text-center hover:bg-purple-700 transition" onclick="playSound('click')">Manage Ads</a>
+      <h2 class="text-2xl font-bold mb-6 text-purple-300">� Competitive</h2>
+      <p class="text-gray-400 mb-6 font-semibold">Leagues & Tournaments</p>
+      <div class="space-y-3">
+        <a href="/leagues" class="block bg-purple-600 p-3 rounded text-center hover:bg-purple-700 transition button-hover font-semibold" onclick="playSound('click')">🏆 Leagues</a>
+        <a href="/tournaments" class="block bg-purple-600 p-3 rounded text-center hover:bg-purple-700 transition button-hover font-semibold" onclick="playSound('click')">🎮 Tournaments</a>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div class="bg-gray-800 p-8 rounded-xl card-hover scale-in border-2 border-cyan-500 hover:border-cyan-400" style="animation-delay: 0.3s;">
+      <h2 class="text-2xl font-bold mb-6 text-cyan-300">👤 Account</h2>
+      <p class="text-gray-400 mb-6 font-semibold">Manage your settings</p>
+      <div class="space-y-3">
+        <a href="/change-password" class="block bg-cyan-600 p-3 rounded text-center hover:bg-cyan-700 transition button-hover font-semibold" onclick="playSound('click')">🔐 Change Password</a>
+        <a href="/advertiser" class="block bg-cyan-600 p-3 rounded text-center hover:bg-cyan-700 transition button-hover font-semibold" onclick="playSound('click')">🎯 Manage Ads</a>
+      </div>
     </div>
   </div>
 

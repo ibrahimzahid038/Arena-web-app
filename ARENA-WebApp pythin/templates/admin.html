@@ -118,6 +118,116 @@
         {% endif %}
     </div>
 
+    <!-- Leagues Management -->
+    <div class="mt-12 bg-gray-800 rounded-xl p-8 w-full max-w-6xl scale-in border-2 border-green-500 hover:border-green-400" style="animation-delay: 0.3s;">
+        <h2 class="text-3xl font-bold text-green-300 mb-8">🏆 Create League</h2>
+        <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <input type="hidden" name="action" value="create_league">
+            <div>
+                <label class="block text-sm font-semibold text-green-200 mb-2">League Name</label>
+                <input type="text" name="league_name" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-green-200 mb-2">Game Type</label>
+                <select name="game_type" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+                    <option value="">Select Game</option>
+                    <option value="tic_tac_toe">Tic Tac Toe</option>
+                    <option value="checkers">Checkers</option>
+                    <option value="maze">Maze</option>
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-green-200 mb-2">Description</label>
+                <textarea name="league_description" rows="3" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition"></textarea>
+            </div>
+            <button type="submit" class="md:col-span-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-3 px-4 rounded-lg transition duration-200 button-hover">Create League</button>
+        </form>
+
+        {% if leagues %}
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-green-300 mb-4">Existing Leagues</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for league in leagues %}
+                <div class="bg-gray-700 p-4 rounded-lg border-l-4 border-green-400">
+                    <h4 class="font-bold text-green-300">{{ league.name }}</h4>
+                    <p class="text-sm text-gray-400">Game: <span class="text-green-300">{{ league.game_type }}</span></p>
+                    <p class="text-sm text-gray-400">Status: <span class="text-green-300">{{ league.status }}</span></p>
+                    <p class="text-sm text-gray-400">Members: <span class="text-green-300">{{ league.members|length }}</span></p>
+                    <form method="POST" style="display:inline;" class="mt-2" onsubmit="return confirm('Delete this league?');">
+                        <input type="hidden" name="action" value="delete_league">
+                        <input type="hidden" name="league_id" value="{{ league.id }}">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-xs transition">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tournaments Management -->
+    <div class="mt-12 bg-gray-800 rounded-xl p-8 w-full max-w-6xl scale-in border-2 border-cyan-500 hover:border-cyan-400" style="animation-delay: 0.4s;">
+        <h2 class="text-3xl font-bold text-cyan-300 mb-8">🎮 Create Tournament</h2>
+        <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <input type="hidden" name="action" value="create_tournament">
+            <div>
+                <label class="block text-sm font-semibold text-cyan-200 mb-2">Tournament Name</label>
+                <input type="text" name="tournament_name" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-cyan-200 mb-2">Game Type</label>
+                <select name="game_type" required class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+                    <option value="">Select Game</option>
+                    <option value="tic_tac_toe">Tic Tac Toe</option>
+                    <option value="checkers">Checkers</option>
+                    <option value="maze">Maze</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-cyan-200 mb-2">League (Optional)</label>
+                <select name="league_id" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+                    <option value="">None</option>
+                    {% for league in leagues %}
+                    <option value="{{ league.id }}">{{ league.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-cyan-200 mb-2">Max Participants</label>
+                <input type="number" name="max_participants" min="2" value="32" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-cyan-200 mb-2">Description</label>
+                <textarea name="tournament_description" rows="3" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"></textarea>
+            </div>
+            <button type="submit" class="md:col-span-2 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white font-bold py-3 px-4 rounded-lg transition duration-200 button-hover">Create Tournament</button>
+        </form>
+
+        {% if tournaments %}
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-cyan-300 mb-4">Existing Tournaments</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for tournament in tournaments %}
+                <div class="bg-gray-700 p-4 rounded-lg border-l-4 border-cyan-400">
+                    <h4 class="font-bold text-cyan-300">{{ tournament.name }}</h4>
+                    <p class="text-sm text-gray-400">Game: <span class="text-cyan-300">{{ tournament.game_type }}</span></p>
+                    <p class="text-sm text-gray-400">Status: <span class="text-cyan-300">{{ tournament.status }}</span></p>
+                    <p class="text-sm text-gray-400">Participants: <span class="text-cyan-300">{{ tournament.participants|length }}/{{ tournament.max_participants or 'Unlimited' }}</span></p>
+                    {% if tournament.league %}
+                    <p class="text-sm text-gray-400">League: <span class="text-cyan-300">{{ tournament.league.name }}</span></p>
+                    {% endif %}
+                    <form method="POST" style="display:inline;" class="mt-2" onsubmit="return confirm('Delete this tournament?');">
+                        <input type="hidden" name="action" value="delete_tournament">
+                        <input type="hidden" name="tournament_id" value="{{ tournament.id }}">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-xs transition">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
     {% endif %}
 </div>
 {% endblock %}

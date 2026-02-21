@@ -1,17 +1,24 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, g
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from models import db, User, GameState, Advertisement
+from flask_login import LoginManager, current_user
+from models import db, User, GameState, Advertisement, UserSession
 from auth import auth_bp
 from games import games_bp
 from ads import ads_bp
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'change-this-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///arena.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Session configuration
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Session expires after 30 days
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
 
 db.init_app(app)
 
@@ -21,7 +28,27 @@ login_manager.login_view = 'auth.login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    """Load user and verify session is valid"""
+    try:
+        user_id = int(user_id)
+        user = User.query.get(user_id)
+        if user:
+            # Verify session exists and is active
+            session_id = request.cookies.get('X-Session-ID')
+            if session_id:
+                user_session = UserSession.query.filter_by(
+                    user_id=user_id,
+                    session_id=session_id,
+                    is_active=True
+                ).first()
+                if user_session and user_session.expires_at > datetime.utcnow():
+                    g.user_session_id = session_id
+                    return user
+                else:
+                    return None
+        return user
+    except:
+        return None
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(games_bp)

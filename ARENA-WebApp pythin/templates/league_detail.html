@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ league.name }} - ARENA{% endblock %}
+{% block content %}
+<style>
+  .league-detail-bg {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+    background-attachment: fixed;
+  }
+</style>
+
+<div class="max-w-4xl mx-auto league-detail-bg min-h-screen py-12">
+  <div class="bg-gray-800 p-8 rounded-xl border-2 border-green-500 mb-8">
+    <h1 class="text-4xl font-bold text-green-300 mb-4">{{ league.name }}</h1>
+    <p class="text-gray-400 mb-4">{{ league.description or 'No description available' }}</p>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-gray-700 p-4 rounded-lg text-center">
+        <p class="text-gray-400 text-sm">Game</p>
+        <p class="text-xl font-bold text-green-300">{{ league.game_type }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg text-center">
+        <p class="text-gray-400 text-sm">Status</p>
+        <p class="text-xl font-bold text-green-300">{{ league.status }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg text-center">
+        <p class="text-gray-400 text-sm">Members</p>
+        <p class="text-xl font-bold text-green-300">{{ league.members|length }}</p>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg text-center">
+        <p class="text-gray-400 text-sm">Created</p>
+        <p class="text-xl font-bold text-green-300">{{ league.created_at.strftime('%m/%d') }}</p>
+      </div>
+    </div>
+
+    {% set is_member = league.members|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}
+    {% if current_user.is_authenticated and is_member %}
+    <div class="mt-6">
+      <h3 class="text-lg font-bold text-green-300 mb-3">Play in League:</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <a href="/league/{{ league.id }}/play/{{ league.game_type }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-center transition">▶ Play Now</a>
+        <a href="#" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-center transition">📊 View Results</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="bg-gray-800 p-8 rounded-xl border-2 border-green-500 mb-8">
+    <h2 class="text-2xl font-bold text-green-300 mb-6">Members ({{ league.members|length }})</h2>
+    {% if league.members %}
+    <div class="space-y-3">
+      {% for member in league.members %}
+      <div class="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
+        <div>
+          <p class="font-bold text-white">{{ member.user.username }}</p>
+          <p class="text-sm text-gray-400">Joined: {{ member.joined_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm text-gray-400">W/L</p>
+          <p class="font-bold text-green-300">{{ member.wins }}/{{ member.losses }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-400 text-center py-8">No members yet. Be the first to join!</p>
+    {% endif %}
+  </div>
+
+  <div class="text-center space-y-3">
+    {% if current_user.is_authenticated %}
+      {% set is_member = league.members|selectattr('user_id', 'equalto', current_user.id)|list|length > 0 %}
+      {% if not is_member %}
+        <form method="POST" action="/join-league">
+          <input type="hidden" name="league_id" value="{{ league.id }}">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">Join This League</button>
+        </form>
+      {% else %}
+        <button class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg cursor-not-allowed opacity-75">You are a member</button>
+      {% endif %}
+    {% else %}
+      <a href="/login" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition">Login to Join</a>
+    {% endif %}
+    
+    <a href="/leagues" class="block bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition">← Back to Leagues</a>
+  </div>
+</div>
+{% endblock %}
